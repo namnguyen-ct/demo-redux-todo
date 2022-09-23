@@ -4,6 +4,17 @@ export const StatusFilters = {
   Completed: 'completed',
 }
 
+const types = new Proxy(
+  {
+    CHANGE_STATUS: 'CHANGE_STATUS',
+    CHANGE_COLORS: 'CHANGE_COLORS',
+  },
+  {
+    get: (target, prop) =>
+      target[prop] ? `filter/${target[prop]}` : target[prop],
+  }
+)
+
 const initialState = {
   status: StatusFilters.All,
   colors: [],
@@ -11,14 +22,13 @@ const initialState = {
 
 export default function filtersReducer(state = initialState, action) {
   switch (action.type) {
-    case 'filters/statusFilterChanged': {
+    case types.CHANGE_STATUS: {
       return {
-        // Again, one less level of nesting to copy
         ...state,
         status: action.payload,
       }
     }
-    case 'filters/colorFilterChanged': {
+    case types.CHANGE_COLORS: {
       let { color, changeType } = action.payload
       const { colors } = state
 
@@ -52,13 +62,13 @@ export default function filtersReducer(state = initialState, action) {
 }
 
 export const statusFilterChanged = (status) => ({
-  type: 'filters/statusFilterChanged',
+  type: types.CHANGE_STATUS,
   payload: status,
 })
 
 export const colorFilterChanged = (color, changeType) => {
   return {
-    type: 'filters/colorFilterChanged',
+    type: types.CHANGE_COLORS,
     payload: { color, changeType },
   }
 }

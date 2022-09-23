@@ -50,6 +50,8 @@ const todoTemplates = [
   { base: 'Read $THING', values: ['newspaper', 'book', 'email'] },
 ]
 
+const availableColors = ['green', 'blue', 'orange', 'purple', 'red']
+
 const generateTodoText = () => {
   const template = randomFromArray(todoTemplates)
   const value = randomFromArray(template.values)
@@ -93,10 +95,10 @@ new Server({
         return generateTodoText()
       },
       completed() {
-        return false
+        return randomFromArray([true, false])
       },
       color() {
-        return ''
+        return randomFromArray(availableColors)
       },
     }),
   },
