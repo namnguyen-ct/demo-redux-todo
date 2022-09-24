@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^7.1.2",
     "classnames": "^2.2.6",
     "faker": "^4.1.0",
+    "immer": "^9.0.15",
     "lodash": "4.17.21",
     "lodash.isequal": "4.5.0",
     "miragejs": "^0.1.35",

@@ -1,17 +1,26 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect'
 import isEqual from 'lodash.isequal'
+import { produce } from 'immer'
 import { client } from '../../api/client'
 import { StatusFilters } from '../filters/filtersSlice'
 
 const createDeepEqualSelector = createSelectorCreator(defaultMemoize, isEqual)
 
 // action types
-const TODO_ADDED = 'TODO_ADDED'
-const TODO_TOGGLED = 'TODO_TOGGLED'
-const COLOR_SELECTED = 'COLOR_SELECTED'
-const TODO_DELETED = 'TODO_DELETED'
-const TODOS_LOADING = 'TODOS_LOADING'
-const TODOS_LOADED = 'TODOS_LOADED'
+const types = new Proxy(
+  {
+    TODO_ADDED: 'TODO_ADDED',
+    TODO_TOGGLED: 'TODO_TOGGLED',
+    COLOR_SELECTED: 'COLOR_SELECTED',
+    TODO_DELETED: 'TODO_DELETED',
+    TODOS_LOADING: 'TODOS_LOADING',
+    TODOS_LOADED: 'TODOS_LOADED',
+  },
+  {
+    get: (target, prop) =>
+      target[prop] ? `entities/${target[prop]}` : target[prop],
+  }
+)
 
 const initialState = {
   status: 'idle',
@@ -20,97 +29,71 @@ const initialState = {
 
 // reducer
 export default function todosReducer(state = initialState, action) {
-  switch (action.type) {
-    case TODO_ADDED: {
-      const todo = action.payload
-      return {
-        ...state,
-        entities: {
-          ...state.entities,
-          [todo.id]: todo,
-        },
-      }
+  const nextState = produce(state, (draft) => {
+    switch (action.type) {
+      case types.TODO_ADDED:
+        const todo = action.payload
+        draft.entities[todo.id] = todo
+        break
+
+      case types.TODO_TOGGLED:
+        draft.entities[action.payload].completed =
+          !draft.entities[action.payload].completed
+        break
+
+      case types.COLOR_SELECTED:
+        const { color, todoId } = action.payload
+        draft.entities[todoId].color = color
+        break
+
+      case types.TODO_DELETED:
+        delete draft.entities[action.payload]
+        break
+
+      case types.TODOS_LOADING:
+        draft.status = 'loading'
+        break
+
+      case types.TODOS_LOADED:
+        const newEntities = {}
+        action.payload.forEach((todo) => {
+          newEntities[todo.id] = todo
+        })
+        draft.status = 'idle'
+        draft.entities = action.payload.reduce((acc, item) => {
+          return { ...acc, [item.id]: item }
+        }, {})
+        break
+
+      default:
+        break
     }
-    case TODO_TOGGLED: {
-      const todoId = action.payload
-      const todo = state.entities[todoId]
-      return {
-        ...state,
-        entities: {
-          ...state.entities,
-          [todoId]: {
-            ...todo,
-            completed: !todo.completed,
-          },
-        },
-      }
-    }
-    case COLOR_SELECTED: {
-      const { color, todoId } = action.payload
-      const todo = state.entities[todoId]
-      return {
-        ...state,
-        entities: {
-          ...state.entities,
-          [todoId]: {
-            ...todo,
-            color,
-          },
-        },
-      }
-    }
-    case TODO_DELETED: {
-      const newEntities = { ...state.entities }
-      delete newEntities[action.payload]
-      return {
-        ...state,
-        entities: newEntities,
-      }
-    }
-    case TODOS_LOADING: {
-      return {
-        ...state,
-        status: 'loading',
-      }
-    }
-    case TODOS_LOADED: {
-      const newEntities = {}
-      action.payload.forEach((todo) => {
-        newEntities[todo.id] = todo
-      })
-      return {
-        ...state,
-        status: 'idle',
-        entities: newEntities,
-      }
-    }
-    default:
-      return state
-  }
+  })
+  return nextState
 }
 
 // action
-export const todoAdded = (todo) => ({ type: TODO_ADDED, payload: todo })
+export const todoAdded = (todo) => ({ type: types.TODO_ADDED, payload: todo })
 
 export const todoToggled = (todoId) => ({
-  type: TODO_TOGGLED,
+  type: types.TODO_TOGGLED,
   payload: todoId,
 })
 
 export const todoColorSelected = (todoId, color) => ({
-  type: COLOR_SELECTED,
+  type: types.COLOR_SELECTED,
   payload: { todoId, color },
 })
 
 export const todoDeleted = (todoId) => ({
-  type: TODO_DELETED,
+  type: types.TODO_DELETED,
   payload: todoId,
 })
 
-export const todosLoading = () => ({ type: TODOS_LOADING })
+export const todosLoading = () => ({ type: types.TODOS_LOADING })
 
 export const todosLoaded = (todos) => ({
-  type: TODOS_LOADED,
+  type: types.TODOS_LOADED,
   payload: todos,
 })
 

@@ -1,3 +1,5 @@
+import { produce } from 'immer'
+
 export const StatusFilters = {
   All: 'all',
   Active: 'active',
@@ -21,44 +23,25 @@ const initialState = {
 }
 
 export default function filtersReducer(state = initialState, action) {
-  switch (action.type) {
-    case types.CHANGE_STATUS: {
-      return {
-        ...state,
-        status: action.payload,
-      }
-    }
-    case types.CHANGE_COLORS: {
-      let { color, changeType } = action.payload
-      const { colors } = state
+  const nextState = produce(state, (draft) => {
+    switch (action.type) {
+      case types.CHANGE_STATUS:
+        draft.status = action.payload
+        break
 
-      switch (changeType) {
-        case 'added': {
-          if (colors.includes(color)) {
-            // This color already is set as a filter. Don't change the state.
-            return state
-          }
-
-          return {
-            ...state,
-            colors: state.colors.concat(color),
-          }
+      case types.CHANGE_COLORS:
+        let { color, changeType } = action.payload
+        if (changeType === 'added' && !draft.colors.includes(color)) {
+          draft.colors.push(color)
+        } else if (changeType === 'removed') {
+          draft.colors = draft.colors.filter((existingColor) => existingColor !== color)
         }
-        case 'removed': {
-          return {
-            ...state,
-            colors: state.colors.filter(
-              (existingColor) => existingColor !== color
-            ),
-          }
-        }
-        default:
-          return state
-      }
+        break
+      default:
+        break
     }
-    default:
-      return state
-  }
+  })
+  return nextState
 }
 
 export const statusFilterChanged = (status) => ({

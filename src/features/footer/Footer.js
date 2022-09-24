@@ -7,15 +7,20 @@ import {
   colorFilterChanged,
   statusFilterChanged,
 } from '../filters/filtersSlice'
-import { selectRemainCount, selectFilteredTodos } from '../todos/todosSlice'
+import {
+  selectRemainTodosCount,
+  selectFilterTodosCount,
+  selectTotalTodosCount,
+} from '../todos/todosSlice'
 
-const StatTodos = ({ count, title }) => {
+const StatTodos = ({ count, title, extra }) => {
   const suffix = count === 1 ? '' : 's'
 
   return (
     <div className="todo-count">
       <h5>{title}</h5>
       <strong>{count}</strong> item{suffix}
+      <p>{extra}</p>
     </div>
   )
 }
@@ -78,11 +83,18 @@ const ColorFilters = ({ value: colors, onChange }) => {
   )
 }
 
+// const mapState = createStructuredSelector({
+//   allTodosCount: selectTotalTodosCount,
+//   remainTodosCount: selectRemainTodosCount,
+//   filterTodosCount: selectFilterTodosCount,
+// })
+
 const Footer = () => {
   const dispatch = useDispatch()
 
-  const todosRemainingCount = useSelector(selectRemainCount)
-  const totalTodos = useSelector(selectFilteredTodos)
+  const allTodosCount = useSelector((state) => selectTotalTodosCount(state, {max : 5}))
+  const remainTodosCount = useSelector(selectRemainTodosCount)
+  const filterTodosCount = useSelector(selectFilterTodosCount)
   const { status, colors } = useSelector((state) => state.filters)
 
   const onColorChange = (color, changeType) =>
@@ -92,8 +104,9 @@ const Footer = () => {
 
   return (
     <footer className="footer">
-      <StatTodos title="Showing total:" count={totalTodos.length} />
-      <StatTodos title="Remaining Todos" count={todosRemainingCount} />
+      <StatTodos title="Total:" count={allTodosCount} />
+      <StatTodos title="Showing:" count={filterTodosCount} />
+      <StatTodos title="Remaining Todos:" count={remainTodosCount} />
       <StatusFilter value={status} onChange={onStatusChange} />
       <ColorFilters value={colors} onChange={onColorChange} />
     </footer>
