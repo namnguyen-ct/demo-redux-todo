@@ -1,17 +1,25 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect'
-import isEqual from 'lodash.isequal'
+import isEqual from 'lodash/isEqual'
 import { client } from '../../api/client'
 import { StatusFilters } from '../filters/filtersSlice'
 
 const createDeepEqualSelector = createSelectorCreator(defaultMemoize, isEqual)
 
 // action types
-const TODO_ADDED = 'TODO_ADDED'
-const TODO_TOGGLED = 'TODO_TOGGLED'
-const COLOR_SELECTED = 'COLOR_SELECTED'
-const TODO_DELETED = 'TODO_DELETED'
-const TODOS_LOADING = 'TODOS_LOADING'
-const TODOS_LOADED = 'TODOS_LOADED'
+export const types = new Proxy(
+  {
+    TODO_ADDED: 'TODO_ADDED',
+    TODO_TOGGLED: 'TODO_TOGGLED',
+    COLOR_SELECTED: 'COLOR_SELECTED',
+    TODO_DELETED: 'TODO_DELETED',
+    TODOS_LOADING: 'TODOS_LOADING',
+    TODOS_LOADED: 'TODOS_LOADED',
+  },
+  {
+    get: (target, prop) =>
+      target[prop] ? `entities/${target[prop]}` : target[prop],
+  }
+)
 
 const initialState = {
   status: 'idle',
@@ -21,7 +29,7 @@ const initialState = {
 // reducer
 export default function todosReducer(state = initialState, action) {
   switch (action.type) {
-    case TODO_ADDED: {
+    case types.TODO_ADDED: {
       const todo = action.payload
       return {
         ...state,
@@ -31,7 +39,7 @@ export default function todosReducer(state = initialState, action) {
         },
       }
     }
-    case TODO_TOGGLED: {
+    case types.TODO_TOGGLED: {
       const todoId = action.payload
       const todo = state.entities[todoId]
       return {
@@ -45,7 +53,7 @@ export default function todosReducer(state = initialState, action) {
         },
       }
     }
-    case COLOR_SELECTED: {
+    case types.COLOR_SELECTED: {
       const { color, todoId } = action.payload
       const todo = state.entities[todoId]
       return {
@@ -59,7 +67,7 @@ export default function todosReducer(state = initialState, action) {
         },
       }
     }
-    case TODO_DELETED: {
+    case types.TODO_DELETED: {
       const newEntities = { ...state.entities }
       delete newEntities[action.payload]
       return {
@@ -67,13 +75,13 @@ export default function todosReducer(state = initialState, action) {
         entities: newEntities,
       }
     }
-    case TODOS_LOADING: {
+    case types.TODOS_LOADING: {
       return {
         ...state,
         status: 'loading',
       }
     }
-    case TODOS_LOADED: {
+    case types.TODOS_LOADED: {
       const newEntities = {}
       action.payload.forEach((todo) => {
         newEntities[todo.id] = todo
@@ -90,27 +98,27 @@ export default function todosReducer(state = initialState, action) {
 }
 
 // action
-export const todoAdded = (todo) => ({ type: TODO_ADDED, payload: todo })
+export const todoAdded = (todo) => ({ type: types.TODO_ADDED, payload: todo })
 
 export const todoToggled = (todoId) => ({
-  type: TODO_TOGGLED,
+  type: types.TODO_TOGGLED,
   payload: todoId,
 })
 
 export const todoColorSelected = (todoId, color) => ({
-  type: COLOR_SELECTED,
+  type: types.COLOR_SELECTED,
   payload: { todoId, color },
 })
 
 export const todoDeleted = (todoId) => ({
-  type: TODO_DELETED,
+  type: types.TODO_DELETED,
   payload: todoId,
 })
 
-export const todosLoading = () => ({ type: TODOS_LOADING })
+export const todosLoading = () => ({ type: types.TODOS_LOADING })
 
 export const todosLoaded = (todos) => ({
-  type: TODOS_LOADED,
+  type: types.TODOS_LOADED,
   payload: todos,
 })
 

@@ -9,7 +9,7 @@ function App() {
     <div className="App">
       <nav>
         <section>
-          <h1>Redux Fundamentals Example</h1>
+          <h1>Redux Example</h1>
         </section>
       </nav>
       <main>
