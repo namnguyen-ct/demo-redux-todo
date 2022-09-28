@@ -1,4 +1,4 @@
-import { produce } from 'immer'
+import produce from 'immer'
 
 // action types
 export const types = new Proxy(
@@ -25,8 +25,7 @@ export default function todosReducer(state = initialState, action) {
   const nextState = produce(state, (draft) => {
     switch (action.type) {
       case types.TODO_ADDED:
-        const todo = action.payload
-        draft.entities[todo.id] = todo
+        draft.entities[action.payload.id] = action.payload
         break
 
       case types.TODO_TOGGLED:
@@ -44,15 +43,11 @@ export default function todosReducer(state = initialState, action) {
         break
 
       case types.TODOS_LOADING:
-        draft.status = 'loading'
+        draft.loading = true
         break
 
       case types.TODOS_LOADED:
-        const newEntities = {}
-        action.payload.forEach((todo) => {
-          newEntities[todo.id] = todo
-        })
-        draft.status = 'idle'
+        draft.loading = false
         draft.entities = action.payload.reduce((acc, item) => {
           return { ...acc, [item.id]: item }
         }, {})

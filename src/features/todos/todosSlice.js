@@ -22,7 +22,7 @@ export const types = new Proxy(
 )
 
 const initialState = {
-  status: 'idle',
+  loading: false,
   entities: {},
 }
 
@@ -78,17 +78,17 @@ export default function todosReducer(state = initialState, action) {
     case types.TODOS_LOADING: {
       return {
         ...state,
-        status: 'loading',
+        loading: true,
       }
     }
     case types.TODOS_LOADED: {
-      const newEntities = {}
-      action.payload.forEach((todo) => {
-        newEntities[todo.id] = todo
-      })
+      const newEntities = action.payload.reduce((acc, item) => {
+        return { ...acc, [item.id]: item }
+      }, {})
+      
       return {
         ...state,
-        status: 'idle',
+        loading: false,
         entities: newEntities,
       }
     }

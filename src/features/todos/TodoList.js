@@ -6,9 +6,9 @@ import { selectFilteredTodos } from './todosSlice'
 
 const TodoList = () => {
   const todos = useSelector(selectFilteredTodos)
-  const loadingStatus = useSelector((state) => state.todos.status)
+  const loadingStatus = useSelector((state) => state.todos.loading)
 
-  if (loadingStatus === 'loading') {
+  if (loadingStatus) {
     return (
       <div className="todo-list">
         <div className="loader" />
